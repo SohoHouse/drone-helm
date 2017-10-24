@@ -17,34 +17,27 @@ pipeline:
 
 
   build_docker_image:
-    image: docker:1.12
-    environment:
-      - DOCKER_HOST=tcp://127.0.0.1:2375
-    commands:
-      - docker login -u="${QUAY_USERNAME}" -p="${QUAY_PASSWORD}" quay.io
-      - docker build -t image .
-      - docker tag image quay.io/sohohouse/drone-helm:latest
-      - docker tag image "quay.io/sohohouse/drone-helm:${DRONE_BRANCH}-${DRONE_COMMIT_SHA:0:7}"
-      - docker push quay.io/sohohouse/drone-helm
-    # when:
-    #  event: [push]
-    #  branch: [master]
-
+    image: plugins/docker
+    repo: quay.io/sohohouse/drone-helm
+    registry: quay.io
+    storage_path: /drone/docker
+    storage_driver: overlay
+    email: "info@info.com"
+    tags:
+      - latest
+      - ${DRONE_BRANCH}-${DRONE_COMMIT_SHA:0:7}
+    secrets:
+      - docker_username
+      - docker_password
+      
   slack:
     image: plugins/slack
     channel: deploys
     username: drone
     template: >
-      {{ build.author }} finished building  *<http://drone.sohohousedigital.com/SohoHouse/{{ repo.name }}/{{ build.number }}|{{ build.branch }} ({{ build.number }})>* of {{ repo.name }}  with a {{ build.status }} status
-
-
-services:
-  dind:
-    image: docker:1.12-dind
-    privileged: true
-    command:
-      - "-s"
-      - "overlay"
+      {{ build.author }} finished building  *<http://build.staging.sohohousedigital.com/SohoHouse/{{ repo.name }}/{{ build.number }}|{{ build.branch }} ({{ build.number }})>* of {{ repo.name }}  with a {{ build.status }} status
+    secrets: [slack_webhook]
+    
 
 plugin:
   name: drone-helm
