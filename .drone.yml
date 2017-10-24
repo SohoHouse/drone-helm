@@ -26,9 +26,7 @@ pipeline:
     tags:
       - latest
       - ${DRONE_BRANCH}-${DRONE_COMMIT_SHA:0:7}
-    secrets:
-      - docker_username
-      - docker_password
+    secrets: [docker_username, docker_password]
       
   slack:
     image: plugins/slack
